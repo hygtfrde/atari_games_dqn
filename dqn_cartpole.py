@@ -5,14 +5,14 @@ import random
 from collections import deque
 
 # Hyperparameters
-episodes = 500
-max_steps = 200
+episodes = 50
+max_steps = 100
 gamma = 0.99
 epsilon = 1.0
 epsilon_min = 0.01
 epsilon_decay = 0.995
 learning_rate = 0.001
-batch_size = 64
+batch_size = 32
 memory_size = 2000
 
 # Initialize the CartPole environment
