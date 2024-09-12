@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 # Hyperparameters
-episodes = 50
+episodes = 10
 max_steps = 1000
 gamma = 0.99
 epsilon = 1.0
@@ -21,14 +21,20 @@ train_every = 4
 # Initialize the Space Invaders environment
 env = gym.make('SpaceInvaders-v0')
 
+# def preprocess_state(state):
+#     # Resize the image
+#     resized = cv2.resize(state, (84, 84), interpolation=cv2.INTER_AREA)
+#     # Convert to grayscale
+#     gray = cv2.cvtColor(resized, cv2.COLOR_RGB2GRAY)
+#     # Normalize
+#     normalized = gray / 255.0
+#     # Flatten
+#     return normalized.flatten()
+
 def preprocess_state(state):
-    # Resize the image
     resized = cv2.resize(state, (84, 84), interpolation=cv2.INTER_AREA)
-    # Convert to grayscale
     gray = cv2.cvtColor(resized, cv2.COLOR_RGB2GRAY)
-    # Normalize
-    normalized = gray / 255.0
-    # Flatten
+    normalized = gray.astype(np.float32) / 255.0
     return normalized.flatten()
 
 # DQN Agent class
@@ -42,6 +48,17 @@ class DQNAgent:
         self.target_model = self._build_model()
         self.update_target_model()
 
+    # def _build_model(self):
+    #     model = tf.keras.Sequential([
+    #         tf.keras.layers.Input(shape=(self.state_size,)),
+    #         tf.keras.layers.Dense(512, activation='relu'),
+    #         tf.keras.layers.Dense(256, activation='relu'),
+    #         tf.keras.layers.Dense(self.action_size, activation='linear')
+    #     ])
+    #     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), 
+    #                   loss='mse')
+    #     return model
+    
     def _build_model(self):
         model = tf.keras.Sequential([
             tf.keras.layers.Input(shape=(self.state_size,)),
@@ -50,7 +67,7 @@ class DQNAgent:
             tf.keras.layers.Dense(self.action_size, activation='linear')
         ])
         model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), 
-                      loss='mse')
+                    loss='mse')
         return model
 
     # def store_experience(self, state, action, reward, next_state, done):
@@ -65,10 +82,17 @@ class DQNAgent:
     #     q_values = self.model.predict(state)
     #     return np.argmax(q_values[0])
     
+    # def act(self, state):
+    #     if np.random.rand() <= self.epsilon:
+    #         return random.randrange(self.action_size)
+    #     q_values = self.model.predict(state[np.newaxis, :])
+    #     return np.argmax(q_values[0])
+    
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
-        q_values = self.model.predict(state[np.newaxis, :])
+        state = np.array(state).reshape(-1, self.state_size)  # Ensure correct shape
+        q_values = self.model.predict(state)
         return np.argmax(q_values[0])
 
     def train(self):
@@ -104,6 +128,8 @@ state_size = 84 * 84  # Flattened 84x84 image
 action_size = env.action_space.n
 agent = DQNAgent(state_size, action_size)
 
+
+
 # Training the agent
 for episode in range(episodes):
     state = env.reset()[0]  # Get the state from the tuple
@@ -112,9 +138,12 @@ for episode in range(episodes):
     # state = preprocess_state(state)
     # state = np.reshape(state, [1, state_size])
     
-    state = preprocess_state(state)
-    state = np.reshape(state, (state_size,))  # Not [1, state_size]
+    # state = preprocess_state(state)
+    # state = np.reshape(state, (state_size,))  # Not [1, state_size]
     
+    state = preprocess_state(state)
+    state = np.reshape(state, (1, state_size))  # Add batch dimension
+        
     total_reward = 0
 
     for step in range(max_steps):
@@ -156,10 +185,18 @@ def test_agent(agent, env, num_episodes=5):
         done = False
 
         while not done:
+            # action = agent.act(state)
+            # next_state, reward, done, _ = env.step(action)
+            # next_state = preprocess_state(next_state)
+            # next_state = np.reshape(next_state, [1, state_size])
+            # total_reward += reward
+            # state = next_state
+            
             action = agent.act(state)
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, terminated, truncated, _ = env.step(action)
+            done = terminated or truncated
             next_state = preprocess_state(next_state)
-            next_state = np.reshape(next_state, [1, state_size])
+            next_state = np.reshape(next_state, (1, state_size))
             total_reward += reward
             state = next_state
 
