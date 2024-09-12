@@ -53,19 +53,31 @@ class DQNAgent:
                       loss='mse')
         return model
 
+    # def store_experience(self, state, action, reward, next_state, done):
+    #     self.memory.append((state, action, reward, next_state, done))
+        
     def store_experience(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
+        self.memory.append((state.flatten(), action, reward, next_state.flatten(), done))
 
+    # def act(self, state):
+    #     if np.random.rand() <= self.epsilon:
+    #         return random.randrange(self.action_size)
+    #     q_values = self.model.predict(state)
+    #     return np.argmax(q_values[0])
+    
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
-        q_values = self.model.predict(state)
+        q_values = self.model.predict(state[np.newaxis, :])
         return np.argmax(q_values[0])
 
     def train(self):
         if len(self.memory) < batch_size:
             return
         minibatch = random.sample(self.memory, batch_size)
+        
+        # states = np.array([s[0] for s in minibatch])
+        # next_states = np.array([s[3] for s in minibatch])
         
         states = np.array([s[0] for s in minibatch])
         next_states = np.array([s[3] for s in minibatch])
@@ -95,16 +107,26 @@ agent = DQNAgent(state_size, action_size)
 # Training the agent
 for episode in range(episodes):
     state = env.reset()[0]  # Get the state from the tuple
+    
+    
+    # state = preprocess_state(state)
+    # state = np.reshape(state, [1, state_size])
+    
     state = preprocess_state(state)
-    state = np.reshape(state, [1, state_size])
+    state = np.reshape(state, (state_size,))  # Not [1, state_size]
+    
     total_reward = 0
 
     for step in range(max_steps):
         action = agent.act(state)
         next_state, reward, terminated, truncated, _ = env.step(action)
         done = terminated or truncated
+        
+        # next_state = preprocess_state(next_state)
+        # next_state = np.reshape(next_state, [1, state_size])
+        
         next_state = preprocess_state(next_state)
-        next_state = np.reshape(next_state, [1, state_size])
+        next_state = np.reshape(next_state, (state_size,))  # Not [1, state_size]
 
         agent.store_experience(state, action, reward, next_state, done)
         
