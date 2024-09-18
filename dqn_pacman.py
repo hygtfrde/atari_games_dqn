@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 # Hyperparameters
-episodes = 50  # More episodes for Pac-Man
+episodes = 5  # More episodes for Pac-Man
 max_steps = 100
 gamma = 0.99
 epsilon = 1.0
@@ -144,15 +144,16 @@ env.close()
 def test_agent(agent, env, num_episodes=5):
     total_rewards = []
     for episode in range(num_episodes):
-        state = env.reset()  # Get initial state
+        state, _ = env.reset()  # Unpack only the first element (state)
         state = preprocess_state(state)
         state = np.reshape(state, [1, state_size])
         total_reward = 0
         done = False
+        truncated = False
 
-        while not done:
+        while not (done or truncated):
             action = agent.act(state)  # Choose action
-            next_state, reward, done, _ = env.step(action)  # Take action
+            next_state, reward, done, truncated, _ = env.step(action)  # Take action
             next_state = preprocess_state(next_state)
             next_state = np.reshape(next_state, (1, state_size))
             total_reward += reward
