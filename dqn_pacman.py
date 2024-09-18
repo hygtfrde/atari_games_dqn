@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import cv2
 
 # Hyperparameters
-episodes = 5  # More episodes for Pac-Man
-max_steps = 100
+episodes = 150  # More episodes for Pac-Man
+max_steps = 2000 # More steps massively improves the reward (what about time?)
 gamma = 0.99
 epsilon = 1.0
 epsilon_min = 0.01
