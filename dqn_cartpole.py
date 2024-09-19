@@ -134,6 +134,8 @@ print(f"Training took {int(minutes)} minutes and {int(seconds)} seconds.")
 # Test the trained agent
 total_rewards = test_agent(agent, env)
 
+# Print best episode score aka Final Score
+
 # Plot the performance
 plt.plot(total_rewards)
 plt.xlabel('Episode')
