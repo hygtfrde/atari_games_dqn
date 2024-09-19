@@ -20,7 +20,7 @@ memory_size = 2000
 train_every = 4
 
 # Initialize the MsPacman environment
-env = gym.make('MsPacman-v0')
+env = gym.make('MsPacman-v0', render_mode='human')
 
 def preprocess_state(state):
     """Preprocesses the game screen state for input into the DQN."""
@@ -113,23 +113,19 @@ start_time = time.time()
 show_game = input("Do you want to display the game while training (Y/N)? ").strip().lower()
 
 for episode in range(episodes):
+    # Reset the environment before rendering
+    state, _ = env.reset()  # Unpack only the first element (state)
+    
     if show_game == 'y':
         env.render()  # Render the game only if the user wants to see it
 
-for episode in range(episodes):
-    # state = env.reset()  # Get initial state
-    state, *_ = env.reset()  # Unpack only the first element (state)
-    print(f"Initial state type: {type(state)}, shape: {np.array(state).shape}")
-    
-    state = env.reset()[0]  # Extract the state from the returned tuple
     state = preprocess_state(state)
     state = np.reshape(state, (1, state_size))  # Add batch dimension
-        
     total_reward = 0
 
     for step in range(max_steps):
         action = agent.act(state)  # Select action
-        next_state, reward, done, _, info = env.step(action)
+        next_state, reward, done, truncated, info = env.step(action)
         next_state = preprocess_state(next_state)
         next_state = np.reshape(next_state, (state_size,))  # Reshape next state
 
@@ -141,7 +137,10 @@ for episode in range(episodes):
         state = next_state  # Move to the next state
         total_reward += reward  # Accumulate rewards
 
-        if done:
+        if show_game == 'y':
+            env.render()  # Render each step if the user wants to see the game
+
+        if done or truncated:
             print(f"Episode: {episode + 1}/{episodes}, Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
             break
 
@@ -154,6 +153,7 @@ end_time = time.time()
 total_time = end_time - start_time
 minutes, seconds = divmod(total_time, 60)
 print(f"Training took {int(minutes)} minutes and {int(seconds)} seconds.")
+
 
 # Function to run a trained agent and visualize performance
 def test_agent(agent, env, num_episodes=5):
