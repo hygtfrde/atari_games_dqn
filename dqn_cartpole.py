@@ -3,9 +3,11 @@ import numpy as np
 import tensorflow as tf
 import random
 from collections import deque
+import matplotlib.pyplot as plt
+import time
 
 # Hyperparameters
-episodes = 50
+episodes = 5
 max_steps = 100
 gamma = 0.99
 epsilon = 1.0
@@ -65,12 +67,42 @@ class DQNAgent:
         if self.epsilon > epsilon_min:
             self.epsilon *= epsilon_decay
 
+# Function to run a trained agent and visualize performance
+def test_agent(agent, env, num_episodes=5):
+    total_rewards = []
+    for episode in range(num_episodes):
+        state, _ = env.reset()
+        state = np.reshape(state, [1, state_size])
+        total_reward = 0
+        done = False
+        while not done:
+            action = agent.act(state)
+            next_state, reward, terminated, truncated, _ = env.step(action)
+            done = terminated or truncated
+            state = np.reshape(next_state, [1, state_size])
+            total_reward += reward
+
+        total_rewards.append(total_reward)
+        print(f"Test Episode: {episode + 1}/{num_episodes}, Reward: {total_reward}")
+
+    return total_rewards
+
+
 # Initialize agent
 state_size = env.observation_space.shape[0]
 action_size = env.action_space.n
 agent = DQNAgent(state_size, action_size)
 
 # Training the agent
+start_time = time.time()
+
+# Prompt user to decide whether to display the game window
+show_game = input("Do you want to display the game while training (Y/N)? ").strip().lower()
+
+for episode in range(episodes):
+    if show_game == 'y':
+        env.render()  # Render the game only if the user wants to see it
+
 for episode in range(episodes):
     state, _ = env.reset()
     state = np.array(state, dtype=np.float32)
@@ -93,3 +125,20 @@ for episode in range(episodes):
         if done:
             print(f"Episode: {episode + 1}/{episodes}, Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
             break
+        
+end_time = time.time()
+total_time = end_time - start_time
+minutes, seconds = divmod(total_time, 60)
+print(f"Training took {int(minutes)} minutes and {int(seconds)} seconds.")
+
+# Test the trained agent
+total_rewards = test_agent(agent, env)
+
+# Plot the performance
+plt.plot(total_rewards)
+plt.xlabel('Episode')
+plt.ylabel('Total Reward')
+plt.title('Performance of the Trained Pac-Man Agent')
+plt.show(block=False)
+plt.pause(30)
+plt.close()
