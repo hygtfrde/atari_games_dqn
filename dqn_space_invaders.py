@@ -1,4 +1,5 @@
 import gym
+from gym.wrappers import OrderEnforcing
 import numpy as np
 import tensorflow as tf
 import random
@@ -20,17 +21,9 @@ memory_size = 2000
 train_every = 4
 
 # Initialize the Space Invaders environment
-env = gym.make('SpaceInvaders-v0')
+env = gym.make('SpaceInvaders-v0', render_mode='human')
+env = OrderEnforcing(env, disable_render_order_enforcing=True)
 
-# def preprocess_state(state):
-#     # Resize the image
-#     resized = cv2.resize(state, (84, 84), interpolation=cv2.INTER_AREA)
-#     # Convert to grayscale
-#     gray = cv2.cvtColor(resized, cv2.COLOR_RGB2GRAY)
-#     # Normalize
-#     normalized = gray / 255.0
-#     # Flatten
-#     return normalized.flatten()
 
 def preprocess_state(state):
     resized = cv2.resize(state, (84, 84), interpolation=cv2.INTER_AREA)
@@ -49,17 +42,7 @@ class DQNAgent:
         self.target_model = self._build_model()
         self.update_target_model()
 
-    # def _build_model(self):
-    #     model = tf.keras.Sequential([
-    #         tf.keras.layers.Input(shape=(self.state_size,)),
-    #         tf.keras.layers.Dense(512, activation='relu'),
-    #         tf.keras.layers.Dense(256, activation='relu'),
-    #         tf.keras.layers.Dense(self.action_size, activation='linear')
-    #     ])
-    #     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), 
-    #                   loss='mse')
-    #     return model
-    
+
     def _build_model(self):
         model = tf.keras.Sequential([
             tf.keras.layers.Input(shape=(self.state_size,)),
@@ -71,24 +54,9 @@ class DQNAgent:
                     loss='mse')
         return model
 
-    # def store_experience(self, state, action, reward, next_state, done):
-    #     self.memory.append((state, action, reward, next_state, done))
-        
     def store_experience(self, state, action, reward, next_state, done):
         self.memory.append((state.flatten(), action, reward, next_state.flatten(), done))
 
-    # def act(self, state):
-    #     if np.random.rand() <= self.epsilon:
-    #         return random.randrange(self.action_size)
-    #     q_values = self.model.predict(state)
-    #     return np.argmax(q_values[0])
-    
-    # def act(self, state):
-    #     if np.random.rand() <= self.epsilon:
-    #         return random.randrange(self.action_size)
-    #     q_values = self.model.predict(state[np.newaxis, :])
-    #     return np.argmax(q_values[0])
-    
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
@@ -100,10 +68,6 @@ class DQNAgent:
         if len(self.memory) < batch_size:
             return
         minibatch = random.sample(self.memory, batch_size)
-        
-        # states = np.array([s[0] for s in minibatch])
-        # next_states = np.array([s[3] for s in minibatch])
-        
         states = np.array([s[0] for s in minibatch])
         next_states = np.array([s[3] for s in minibatch])
         
@@ -135,37 +99,31 @@ agent = DQNAgent(state_size, action_size)
 start_time = time.time()
 
 # Prompt user to decide whether to display the game window
-show_game = input("Do you want to display the game while training (Y/N)? ").strip().lower()
+show_game = input("Do you want to display the game while training (Y/N)? ").strip().lower() == 'y'
 
 for episode in range(episodes):
-    if show_game == 'y':
+    if show_game:
+        env.reset()  # Reset the environment first
         env.render()  # Render the game only if the user wants to see it
+ 
 
 for episode in range(episodes):
-    state = env.reset()[0]  # Get the state from the tuple
-    
-    
-    # state = preprocess_state(state)
-    # state = np.reshape(state, [1, state_size])
-    
-    # state = preprocess_state(state)
-    # state = np.reshape(state, (state_size,))  # Not [1, state_size]
-    
+    state, _ = env.reset()  # Reset the environment and get the initial state
     state = preprocess_state(state)
     state = np.reshape(state, (1, state_size))  # Add batch dimension
         
     total_reward = 0
 
     for step in range(max_steps):
+        if show_game:
+            env.render()  # Render the game only if the user wants to see it
+
         action = agent.act(state)
         next_state, reward, terminated, truncated, _ = env.step(action)
         done = terminated or truncated
         
-        # next_state = preprocess_state(next_state)
-        # next_state = np.reshape(next_state, [1, state_size])
-        
         next_state = preprocess_state(next_state)
-        next_state = np.reshape(next_state, (state_size,))  # Not [1, state_size]
+        next_state = np.reshape(next_state, (1, state_size))  # Add batch dimension
 
         agent.store_experience(state, action, reward, next_state, done)
         
@@ -199,14 +157,7 @@ def test_agent(agent, env, num_episodes=5):
         total_reward = 0
         done = False
 
-        while not done:
-            # action = agent.act(state)
-            # next_state, reward, done, _ = env.step(action)
-            # next_state = preprocess_state(next_state)
-            # next_state = np.reshape(next_state, [1, state_size])
-            # total_reward += reward
-            # state = next_state
-            
+        while not done:   
             action = agent.act(state)
             next_state, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
