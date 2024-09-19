@@ -6,8 +6,9 @@ from collections import deque
 import matplotlib.pyplot as plt
 import time
 import os
-import datetime
+from datetime import datetime
 
+# Create the 'visualizations' directory if it doesn't exist
 output_dir = 'visualizations'
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -99,6 +100,10 @@ state_size = env.observation_space.shape[0]
 action_size = env.action_space.n
 agent = DQNAgent(state_size, action_size)
 
+# Track best episode reward and index
+best_reward = -float('inf')
+best_episode = 0
+
 # Training the agent
 start_time = time.time()
 
@@ -129,6 +134,10 @@ for episode in range(episodes):
 
         if done:
             print(f"Episode: {episode + 1}/{episodes}, Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
+            # Track the best episode
+            if total_reward > best_reward:
+                best_reward = total_reward
+                best_episode = episode + 1
             break
         
 end_time = time.time()
@@ -136,9 +145,11 @@ total_time = end_time - start_time
 minutes, seconds = divmod(total_time, 60)
 print(f"Training took {int(minutes)} minutes and {int(seconds)} seconds.")
 
-
 # Test the trained agent
 total_rewards = test_agent(agent, env)
+
+# Print best episode information
+print(f"The best episode was Episode {best_episode} with a reward of {best_reward}.")
 
 # Generate the timestamp
 timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -147,10 +158,10 @@ timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 plt.plot(total_rewards)
 plt.xlabel('Episode')
 plt.ylabel('Total Reward')
-plt.title(f'Performance of the Trained Pac-Man Agent - {timestamp}')
+plt.title(f'Performance of the Trained CartPole Agent - {timestamp}')
 
 # Save the plot to the 'visualizations' directory
-plot_filename = os.path.join(output_dir, f'pacman_performance_{timestamp}.png')
+plot_filename = os.path.join(output_dir, f'cartpole_performance_{timestamp}.png')
 plt.savefig(plot_filename)
 
 # Optionally show the plot for a few seconds and then close it
