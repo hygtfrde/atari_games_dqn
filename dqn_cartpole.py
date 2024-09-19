@@ -100,11 +100,10 @@ start_time = time.time()
 show_game = input("Do you want to display the game while training (Y/N)? ").strip().lower()
 
 for episode in range(episodes):
+    state, _ = env.reset()  # Ensure reset happens before render
     if show_game == 'y':
         env.render()  # Render the game only if the user wants to see it
 
-for episode in range(episodes):
-    state, _ = env.reset()
     state = np.array(state, dtype=np.float32)
     state = np.reshape(state, [1, state_size])
     total_reward = 0
@@ -130,6 +129,7 @@ end_time = time.time()
 total_time = end_time - start_time
 minutes, seconds = divmod(total_time, 60)
 print(f"Training took {int(minutes)} minutes and {int(seconds)} seconds.")
+
 
 # Test the trained agent
 total_rewards = test_agent(agent, env)
