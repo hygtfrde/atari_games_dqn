@@ -5,6 +5,12 @@ import random
 from collections import deque
 import matplotlib.pyplot as plt
 import time
+import os
+import datetime
+
+output_dir = 'visualizations'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 # Hyperparameters
 episodes = 5
@@ -134,13 +140,22 @@ print(f"Training took {int(minutes)} minutes and {int(seconds)} seconds.")
 # Test the trained agent
 total_rewards = test_agent(agent, env)
 
-# Print best episode score aka Final Score
+# Generate the timestamp
+timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 # Plot the performance
 plt.plot(total_rewards)
 plt.xlabel('Episode')
 plt.ylabel('Total Reward')
-plt.title('Performance of the Trained Pac-Man Agent')
+plt.title(f'Performance of the Trained Pac-Man Agent - {timestamp}')
+
+# Save the plot to the 'visualizations' directory
+plot_filename = os.path.join(output_dir, f'pacman_performance_{timestamp}.png')
+plt.savefig(plot_filename)
+
+# Optionally show the plot for a few seconds and then close it
 plt.show(block=False)
-plt.pause(30)
+plt.pause(3)
 plt.close()
+
+print(f"Plot saved to {plot_filename}")
