@@ -8,7 +8,7 @@ The task is to build an AI that can play three different Atari games: **CartPole
 The problem is solved by implementing a **DQN (Deep Q-Network)** for each game. The AI learns to play the games by interacting with the game environment, storing its experiences in a replay buffer, and using those experiences to train a neural network to predict the best actions. The DQN model is initially built for the simpler CartPole game using fully connected layers and then adapted for Space Invaders and Pacman by using convolutional neural networks (CNNs) to handle high-dimensional inputs like game frames. Experience replay, target networks, and reward shaping are employed to stabilize training and improve performance.
 
 ## Installation
-To set up and install the project dependencies, follow these steps in the project repo:
+To set up the virtual env and install the project dependencies, follow these steps in the project repo:
 
 ```bash
 python -m venv venv
@@ -25,6 +25,12 @@ pip install "gym[atari]" "gym[accept-rom-license]"
 
 
 ## Usage
+The bash script `launch_model.sh` will prompt the user which model to train and test, then it will run. 
+Run it with on Unix-like systems:
+```
+sh launch_model.sh
+```
+Alternatively, we can run a model to train and test individually.
 To train the DQN model for CartPole, run the following command:
 ```
 python CartPole/dqn_cartpole.py
