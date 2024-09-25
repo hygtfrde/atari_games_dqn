@@ -44,6 +44,21 @@ And for Pacman:
 python Pacman/dqn_pacman.py
 ```
 
+For Hyperparameter tuning with Space Invaders:
+```
+# Hyperparameters
+episodes = 3
+max_steps = 100
+gamma = 0.99
+epsilon = 1.0
+epsilon_min = 0.01
+epsilon_decay = 0.995
+learning_rate = 0.001
+batch_size = 32
+memory_size = 2000
+train_every = 4
+```
+
 ### The Core Team
 
 
