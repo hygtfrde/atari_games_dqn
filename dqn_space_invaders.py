@@ -7,18 +7,42 @@ from collections import deque
 import matplotlib.pyplot as plt
 import cv2
 import time
+import pickle
+import threading
 
-# Hyperparameters
+
+# ----------------------- Hyperparameters
+# Number of episodes the agent will play
 episodes = 3
-max_steps = 100
+
+# Maximum steps/moves per episode
+max_steps = 300
+
+# Discount factor for future rewards in the Q-value update (1 is long, 0 is short)
 gamma = 0.99
+
+# Initial exploration rate for choosing random actions (1 is exploration/randomness, 0 is exploitation)
 epsilon = 1.0
+
+# Minimum value of epsilon to prevent total exploitation
 epsilon_min = 0.01
+
+# Rate at which epsilon decays over time to reduce exploration
 epsilon_decay = 0.995
+
+# Learning rate step size for updating neural network weights
 learning_rate = 0.001
+
+# Number of experiences sampled from memory during each training step
 batch_size = 32
+
+# Maximum size of the experience replay memory
 memory_size = 2000
+
+# Number of steps between each training session
 train_every = 4
+# -----------------------
+
 
 # Initialize the Space Invaders environment
 env = gym.make('SpaceInvaders-v0', render_mode='human')
@@ -135,7 +159,7 @@ class DQNAgent:
 state_size = 84 * 84  # Flattened 84x84 image
 action_size = env.action_space.n
 
-# For CNN model
+# For CNN model/agent
 agent_cnn = DQNAgent(state_size=84 * 84, action_size=env.action_space.n, model_type='cnn')
 
 # For regular dense model
@@ -190,6 +214,31 @@ for episode in range(episodes):
         agent_cnn.update_target_model()
 
 env.close()
+
+# ----------------------- Pickle Dump ???
+def prompt_save():
+    global user_input
+    try:
+        user_input = input("Do you want to save the trained model as a pickle file? (Y/N): ").strip().lower()
+    except EOFError:
+        user_input = 'n'
+
+user_input = 'n'
+
+input_thread = threading.Thread(target=prompt_save)
+input_thread.start()
+
+# Timeout after 30 seconds
+input_thread.join(30)
+
+if user_input != 'y':
+    print("No input received or user chose not to save. Model not saved.")
+else:
+    # User selects 'yes', save the model
+    with open('dqn_agent_cnn.pkl', 'wb') as f:
+        pickle.dump(agent_cnn, f)
+    print("Model saved successfully!")
+# -----------------------
 
 end_time = time.time()
 total_time = end_time - start_time
