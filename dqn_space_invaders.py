@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import cv2
 import time
 import pickle
-import threading
 
 
 # ----------------------- Hyperparameters
@@ -261,25 +260,19 @@ plt.close()
 
 # ----------------------- Pickle Dump ???
 def prompt_save():
-    global user_input
     try:
         user_input = input("Do you want to save the trained model as a pickle file? (Y/N): ").strip().lower()
+        if not user_input:
+            return 'y'
+        return user_input
     except EOFError:
-        user_input = 'y'
+        return 'n'
 
-# Set the default to 'y' (Yes)
-user_input = 'y'
+# Prompt for saving the model (main thread)
+user_input = prompt_save()
 
-# Start the input thread
-input_thread = threading.Thread(target=prompt_save)
-input_thread.start()
-
-# Timeout after 30 seconds
-input_thread.join(30)
-
-# Check if the user explicitly entered 'n'
 if user_input != 'n':
-    print("No input received or 'Y' selected, dumping CNN model into a pickle...")
+    print("Saving CNN model to pickle file...")
     with open('dqn_agent_cnn.pkl', 'wb') as f:
         pickle.dump(agent_cnn, f)
     print("Model saved successfully!")
