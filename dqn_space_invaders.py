@@ -43,9 +43,19 @@ train_every = 4
 # -----------------------
 
 
-# Initialize the Space Invaders environment
-env = gym.make('SpaceInvaders-v0', render_mode='human')
+# Initialize the Space Invaders environment without render mode first
+env = gym.make('SpaceInvaders-v0')  # No render_mode yet
 env = OrderEnforcing(env, disable_render_order_enforcing=True)
+
+
+# Prompt user to decide whether to display the game window
+show_game = input("Do you want to display the game while training (Y/N)? ").strip().lower() == 'y'
+
+# If the user chooses to display the game, reinitialize the environment with rendering
+if show_game:
+    env.close()  # Close the previous environment
+    env = gym.make('SpaceInvaders-v0', render_mode='human')
+    env = OrderEnforcing(env, disable_render_order_enforcing=True)
 
 
 def preprocess_state(state):
@@ -170,15 +180,6 @@ agent_cnn = DQNAgent(state_size=84 * 84, action_size=env.action_space.n, model_t
 # Training the agent
 start_time = time.time()
 
-# Prompt user to decide whether to display the game window
-show_game = input("Do you want to display the game while training (Y/N)? ").strip().lower() == 'y'
-
-for episode in range(episodes):
-    if show_game:
-        env.reset()  # Reset the environment first
-        env.render()  # Render the game only if the user wants to see it
- 
-
 for episode in range(episodes):
     state, _ = env.reset()  # Reset the environment and get the initial state
     state = preprocess_state(state)
@@ -187,8 +188,8 @@ for episode in range(episodes):
     total_reward = 0
 
     for step in range(max_steps):
-        if show_game:
-            env.render()  # Render the game only if the user wants to see it
+        if show_game:  # Render the game only if the user wants to see it
+            env.render()
 
         action = agent_cnn.act(state)
         next_state, reward, terminated, truncated, _ = env.step(action)
