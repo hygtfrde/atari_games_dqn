@@ -33,7 +33,7 @@ epsilon_decay = 0.995
 # Learning rate step size for updating neural network weights
 learning_rate = 0.001
 
-# Number of experiences sampled from memory during each training step
+# Number of experiences sampled from memory during each training step before updating model weights
 batch_size = 32
 
 # Maximum size of the experience replay memory
@@ -215,31 +215,6 @@ for episode in range(episodes):
 
 env.close()
 
-# ----------------------- Pickle Dump ???
-def prompt_save():
-    global user_input
-    try:
-        user_input = input("Do you want to save the trained model as a pickle file? (Y/N): ").strip().lower()
-    except EOFError:
-        user_input = 'n'
-
-user_input = 'n'
-
-input_thread = threading.Thread(target=prompt_save)
-input_thread.start()
-
-# Timeout after 30 seconds
-input_thread.join(30)
-
-if user_input != 'y':
-    print("No input received or user chose not to save. Model not saved.")
-else:
-    # User selects 'yes', save the model
-    with open('dqn_agent_cnn.pkl', 'wb') as f:
-        pickle.dump(agent_cnn, f)
-    print("Model saved successfully!")
-# -----------------------
-
 end_time = time.time()
 total_time = end_time - start_time
 minutes, seconds = divmod(total_time, 60)
@@ -282,3 +257,32 @@ plt.title('Performance of the Trained Agent')
 plt.show(block=False)
 plt.pause(3)
 plt.close()
+
+
+# ----------------------- Pickle Dump ???
+def prompt_save():
+    global user_input
+    try:
+        user_input = input("Do you want to save the trained model as a pickle file? (Y/N): ").strip().lower()
+    except EOFError:
+        user_input = 'y'
+
+# Set the default to 'y' (Yes)
+user_input = 'y'
+
+# Start the input thread
+input_thread = threading.Thread(target=prompt_save)
+input_thread.start()
+
+# Timeout after 30 seconds
+input_thread.join(30)
+
+# Check if the user explicitly entered 'n'
+if user_input != 'n':
+    print("No input received or 'Y' selected, dumping CNN model into a pickle...")
+    with open('dqn_agent_cnn.pkl', 'wb') as f:
+        pickle.dump(agent_cnn, f)
+    print("Model saved successfully!")
+else:
+    print("Skipping picklization.")
+# -----------------------
